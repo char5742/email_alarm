@@ -9,12 +9,15 @@ class SettingsPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return const Scaffold(
-      body: Center(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Settings'),
+      ),
+      body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            UIDContainer(),
+            EmailContainer(),
             SizedBox(height: 32),
             SpecificSendersField(),
             SizedBox(height: 128),
@@ -26,8 +29,8 @@ class SettingsPage extends HookConsumerWidget {
   }
 }
 
-class UIDContainer extends HookConsumerWidget {
-  const UIDContainer({super.key});
+class EmailContainer extends HookConsumerWidget {
+  const EmailContainer({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,7 +38,7 @@ class UIDContainer extends HookConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('UID: $uid'),
+        Text('Email: $uid'),
         IconButton(
           onPressed: () async {
             if (uid == null) {
@@ -59,16 +62,19 @@ class SpecificSendersField extends HookConsumerWidget {
 
     return configAsync.when(
       data: (config) {
-        return TextFormField(
-          initialValue: config.specificSenders,
-          decoration: const InputDecoration(
-            labelText: 'senders',
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: TextFormField(
+            initialValue: config.specificSenders,
+            decoration: const InputDecoration(
+              labelText: 'senders',
+            ),
+            onFieldSubmitted: (value) {
+              ref
+                  .read(configServiceProvider)
+                  .setConfig(config.copyWith(specificSenders: value));
+            },
           ),
-          onFieldSubmitted: (value) {
-            ref
-                .read(configServiceProvider)
-                .setConfig(config.copyWith(specificSenders: value));
-          },
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
