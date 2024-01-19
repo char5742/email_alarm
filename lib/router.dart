@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'pages/about_page.dart';
 import 'pages/home_page.dart';
+import 'pages/request_permission_page.dart';
 import 'pages/settings_page.dart';
 import 'providers/auth_service_provider.dart';
 
@@ -44,6 +45,10 @@ GoRouter router(RouterRef ref) {
           GoRoute(
             path: 'settings',
             builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: 'requestPermission',
+            builder: (context, state) => const RequestPermissionPage(),
           ),
         ],
       ),

@@ -5,10 +5,12 @@ import 'dart:ui';
 import 'package:email_alarm/providers/alarm_service_provider.dart';
 import 'package:email_alarm/providers/email_provider.dart';
 import 'package:email_alarm/repositories/config_repository.dart';
+import 'package:email_alarm/router.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class EmailAlarmService {
   EmailAlarmService(this.ref);
@@ -38,6 +40,16 @@ class EmailAlarmService {
   }
 
   Future<void> startMonitaring() async {
+    final isGranted = await Permission.notification.isGranted;
+    print(isGranted);
+    if (!isGranted) {
+      final res = await Permission.notification.request();
+      if (res != PermissionStatus.granted) {
+        ref.read(routerProvider).go('/requestPermission');
+      }
+      return;
+    }
+
     await service.startService();
     _isMonitoringStateController.add(true);
     _subscription = service.on('check').listen((event) async {
