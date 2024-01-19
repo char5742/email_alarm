@@ -69,8 +69,8 @@ class EmailAlarmService {
 
     const channel = AndroidNotificationChannel(
       notificationChannelId, // id
-      'メール待機アプリ', // title
-      description: '先生からのメールを待機', // description
+      'EmailAlarm', // title
+      description: 'Waiting for Emails from Specific Senders', // description
       importance: Importance.low, // importance must be at low or higher level
     );
 
