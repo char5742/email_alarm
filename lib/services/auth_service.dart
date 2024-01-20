@@ -4,6 +4,7 @@ import 'package:googleapis/gmail/v1.dart';
 class AuthService {
   AuthService();
   final googleSignIn = GoogleSignIn(
+    forceCodeForRefreshToken: true,
     scopes: [
       GmailApi.gmailReadonlyScope,
     ],
