@@ -42,6 +42,7 @@ class EmailRepository {
     final specificSender = '{${config.specificSenders}}';
 
     final googleSignIn = ref.read(authServiceProvider).googleSignIn;
+    await googleSignIn.signInSilently();
     final httpClient = await googleSignIn.authenticatedClient();
     assert(httpClient != null, 'Authenticated client missing!');
     final gmailApi = GmailApi(httpClient!);

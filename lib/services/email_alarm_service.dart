@@ -7,7 +7,6 @@ import 'package:email_alarm/providers/email_provider.dart';
 import 'package:email_alarm/repositories/config_repository.dart';
 import 'package:email_alarm/router.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -42,7 +41,6 @@ class EmailAlarmService {
 
   Future<void> startMonitaring() async {
     final isGranted = await Permission.notification.isGranted;
-    print(isGranted);
     if (!isGranted) {
       final res = await Permission.notification.request();
       if (res != PermissionStatus.granted) {
@@ -53,9 +51,10 @@ class EmailAlarmService {
 
     await service.startService();
     _isMonitoringStateController.add(true);
+    service.invoke('showNotification');
     _checkSubscription = service.on('check').listen((event) async {
-      final emails = await ref.read(fetchEmailsProvider.future);
-
+      final emails = await ref.refresh(fetchEmailsProvider.future);
+      service.invoke('showNotification');
       if (emails.isEmpty) {
         return;
       }
@@ -97,9 +96,21 @@ class EmailAlarmService {
     final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     if (Platform.isIOS || Platform.isAndroid) {
       await flutterLocalNotificationsPlugin.initialize(
-        const InitializationSettings(
-          iOS: DarwinInitializationSettings(),
-          android: AndroidInitializationSettings('ic_bg_service_small'),
+        InitializationSettings(
+          iOS: DarwinInitializationSettings(
+            notificationCategories: [
+              DarwinNotificationCategory(
+                'email_notification_category',
+                actions: [
+                  DarwinNotificationAction.plain(
+                    'stop',
+                    'Stop',
+                  ),
+                ],
+              ),
+            ],
+          ),
+          android: const AndroidInitializationSettings('ic_bg_service_small'),
         ),
         onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
       );
@@ -118,14 +129,16 @@ class EmailAlarmService {
         notificationChannelId: notificationChannelId,
         foregroundServiceNotificationId: notificationId,
       ),
-      iosConfiguration: IosConfiguration(),
+      iosConfiguration: IosConfiguration(
+        onForeground: onStart,
+        autoStart: false,
+      ),
     );
   }
 }
 
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse notificationResponse) {
-  print(notificationResponse);
   if (notificationResponse.notificationResponseType ==
       NotificationResponseType.selectedNotificationAction) {
     switch (notificationResponse.actionId) {
@@ -157,59 +170,36 @@ Future<void> onStart(ServiceInstance service) async {
     service.invoke('stop');
   });
 
-  if (service is AndroidServiceInstance) {
-    if (await service.isForegroundService()) {
-      await flutterLocalNotificationsPlugin.show(
-        notificationId,
-        'Waiting for email',
-        'Updated at ${DateTime.now()}',
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            notificationChannelId,
-            'MY FOREGROUND SERVICE',
-            icon: 'ic_bg_service_small',
-            ongoing: true,
-            importance: Importance.max,
-            priority: Priority.max,
-            actions: [
-              AndroidNotificationAction(
-                'stop',
-                'Stop',
-              ),
-            ],
-          ),
+  service.on('showNotification').listen((event) async {
+    await flutterLocalNotificationsPlugin.show(
+      notificationId,
+      'Waiting for email',
+      'Updated at ${DateTime.now()}',
+      const NotificationDetails(
+        iOS: DarwinNotificationDetails(
+          threadIdentifier: notificationChannelId,
         ),
-      );
-    }
-  }
+        android: AndroidNotificationDetails(
+          notificationChannelId,
+          'MY FOREGROUND SERVICE',
+          icon: 'ic_bg_service_small',
+          ongoing: true,
+          importance: Importance.max,
+          priority: Priority.max,
+          actions: [
+            AndroidNotificationAction(
+              'stop',
+              'Stop',
+            ),
+          ],
+        ),
+      ),
+    );
+  });
+
   // bring to foreground
   Timer.periodic(Duration(minutes: config.intervalInMinutes), (timer) async {
-    if (service is AndroidServiceInstance) {
-      if (await service.isForegroundService()) {
-        await flutterLocalNotificationsPlugin.show(
-          notificationId,
-          'Waiting for email',
-          'Updated at ${DateTime.now()}',
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              notificationChannelId,
-              'MY FOREGROUND SERVICE',
-              icon: 'ic_bg_service_small',
-              ongoing: true,
-              importance: Importance.max,
-              priority: Priority.max,
-              actions: [
-                AndroidNotificationAction(
-                  'stop',
-                  'Stop',
-                ),
-              ],
-            ),
-          ),
-        );
-        service.invoke('check');
-      }
-    }
+    service.invoke('check');
   });
 }
 
@@ -229,7 +219,9 @@ Future<void> _showFullScreenNotification(String body) async {
       ),
     ],
   );
-  const iOSPlatformChannelSpecifics = DarwinNotificationDetails();
+  const iOSPlatformChannelSpecifics = DarwinNotificationDetails(
+    threadIdentifier: 'email_notification_channel',
+  );
 
   const platformChannelSpecifics = NotificationDetails(
     android: androidPlatformChannelSpecifics,
