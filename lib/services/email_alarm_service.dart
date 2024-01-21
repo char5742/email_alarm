@@ -58,6 +58,9 @@ class EmailAlarmService {
       if (emails.isEmpty) {
         return;
       }
+      if (ref.read(alarmServiceProvider).isPlaying) {
+        return;
+      }
       await ref.read(alarmServiceProvider).playSound();
       await _showFullScreenNotification(emails.first.content ?? '');
     });

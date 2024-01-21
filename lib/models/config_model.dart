@@ -8,5 +8,6 @@ class Config with _$Config {
   const factory Config({
     @Default('') String specificSenders,
     @Default(1) int intervalInMinutes,
+    @Default(3) int pastPeriodMultiplier,
   }) = _Config;
 }

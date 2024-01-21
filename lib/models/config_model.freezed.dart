@@ -18,6 +18,7 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$Config {
   String get specificSenders => throw _privateConstructorUsedError;
   int get intervalInMinutes => throw _privateConstructorUsedError;
+  int get pastPeriodMultiplier => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $ConfigCopyWith<Config> get copyWith => throw _privateConstructorUsedError;
@@ -28,7 +29,10 @@ abstract class $ConfigCopyWith<$Res> {
   factory $ConfigCopyWith(Config value, $Res Function(Config) then) =
       _$ConfigCopyWithImpl<$Res, Config>;
   @useResult
-  $Res call({String specificSenders, int intervalInMinutes});
+  $Res call(
+      {String specificSenders,
+      int intervalInMinutes,
+      int pastPeriodMultiplier});
 }
 
 /// @nodoc
@@ -46,6 +50,7 @@ class _$ConfigCopyWithImpl<$Res, $Val extends Config>
   $Res call({
     Object? specificSenders = null,
     Object? intervalInMinutes = null,
+    Object? pastPeriodMultiplier = null,
   }) {
     return _then(_value.copyWith(
       specificSenders: null == specificSenders
@@ -55,6 +60,10 @@ class _$ConfigCopyWithImpl<$Res, $Val extends Config>
       intervalInMinutes: null == intervalInMinutes
           ? _value.intervalInMinutes
           : intervalInMinutes // ignore: cast_nullable_to_non_nullable
+              as int,
+      pastPeriodMultiplier: null == pastPeriodMultiplier
+          ? _value.pastPeriodMultiplier
+          : pastPeriodMultiplier // ignore: cast_nullable_to_non_nullable
               as int,
     ) as $Val);
   }
@@ -67,7 +76,10 @@ abstract class _$$ConfigImplCopyWith<$Res> implements $ConfigCopyWith<$Res> {
       __$$ConfigImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String specificSenders, int intervalInMinutes});
+  $Res call(
+      {String specificSenders,
+      int intervalInMinutes,
+      int pastPeriodMultiplier});
 }
 
 /// @nodoc
@@ -83,6 +95,7 @@ class __$$ConfigImplCopyWithImpl<$Res>
   $Res call({
     Object? specificSenders = null,
     Object? intervalInMinutes = null,
+    Object? pastPeriodMultiplier = null,
   }) {
     return _then(_$ConfigImpl(
       specificSenders: null == specificSenders
@@ -93,6 +106,10 @@ class __$$ConfigImplCopyWithImpl<$Res>
           ? _value.intervalInMinutes
           : intervalInMinutes // ignore: cast_nullable_to_non_nullable
               as int,
+      pastPeriodMultiplier: null == pastPeriodMultiplier
+          ? _value.pastPeriodMultiplier
+          : pastPeriodMultiplier // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -100,7 +117,10 @@ class __$$ConfigImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$ConfigImpl implements _Config {
-  const _$ConfigImpl({this.specificSenders = '', this.intervalInMinutes = 1})
+  const _$ConfigImpl(
+      {this.specificSenders = '',
+      this.intervalInMinutes = 1,
+      this.pastPeriodMultiplier = 3})
       : assert(intervalInMinutes > 0, 'Interval must be greater than 0');
 
   @override
@@ -109,10 +129,13 @@ class _$ConfigImpl implements _Config {
   @override
   @JsonKey()
   final int intervalInMinutes;
+  @override
+  @JsonKey()
+  final int pastPeriodMultiplier;
 
   @override
   String toString() {
-    return 'Config(specificSenders: $specificSenders, intervalInMinutes: $intervalInMinutes)';
+    return 'Config(specificSenders: $specificSenders, intervalInMinutes: $intervalInMinutes, pastPeriodMultiplier: $pastPeriodMultiplier)';
   }
 
   @override
@@ -123,12 +146,14 @@ class _$ConfigImpl implements _Config {
             (identical(other.specificSenders, specificSenders) ||
                 other.specificSenders == specificSenders) &&
             (identical(other.intervalInMinutes, intervalInMinutes) ||
-                other.intervalInMinutes == intervalInMinutes));
+                other.intervalInMinutes == intervalInMinutes) &&
+            (identical(other.pastPeriodMultiplier, pastPeriodMultiplier) ||
+                other.pastPeriodMultiplier == pastPeriodMultiplier));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, specificSenders, intervalInMinutes);
+  int get hashCode => Object.hash(
+      runtimeType, specificSenders, intervalInMinutes, pastPeriodMultiplier);
 
   @JsonKey(ignore: true)
   @override
@@ -140,12 +165,15 @@ class _$ConfigImpl implements _Config {
 abstract class _Config implements Config {
   const factory _Config(
       {final String specificSenders,
-      final int intervalInMinutes}) = _$ConfigImpl;
+      final int intervalInMinutes,
+      final int pastPeriodMultiplier}) = _$ConfigImpl;
 
   @override
   String get specificSenders;
   @override
   int get intervalInMinutes;
+  @override
+  int get pastPeriodMultiplier;
   @override
   @JsonKey(ignore: true)
   _$$ConfigImplCopyWith<_$ConfigImpl> get copyWith =>

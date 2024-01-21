@@ -37,17 +37,17 @@ class EmailRepository {
   Future<List<Message>?> _fetchMessages() async {
     final config = await ref.read(configProvider.future);
     final after = (DateTime.now().millisecondsSinceEpoch / 1000).floor() -
-        (60 * config.intervalInMinutes);
-    //取得条件
+        (60 * config.intervalInMinutes * config.pastPeriodMultiplier);
+    // who sends the email
     final specificSender = '{${config.specificSenders}}';
+    final query = '(is:unread after:$after from:$specificSender)';
 
     final googleSignIn = ref.read(authServiceProvider).googleSignIn;
     await googleSignIn.signInSilently();
     final httpClient = await googleSignIn.authenticatedClient();
     assert(httpClient != null, 'Authenticated client missing!');
     final gmailApi = GmailApi(httpClient!);
-    final reponse = await gmailApi.users.messages
-        .list('me', q: '(is:unread after:$after from:$specificSender)');
+    final reponse = await gmailApi.users.messages.list('me', q: query);
     final messageList = reponse.messages;
     if (messageList == null) {
       return null;
