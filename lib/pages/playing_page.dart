@@ -1,5 +1,6 @@
 import 'package:email_alarm/providers/email_alarm_service_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class PlayingPage extends HookConsumerWidget {
@@ -15,8 +16,9 @@ class PlayingPage extends HookConsumerWidget {
           style: ElevatedButton.styleFrom(
             textStyle: theme.textTheme.displaySmall,
           ),
-          onPressed: () {
-            ref.read(emailAlarmServiceProvider).stopMonitaring();
+          onPressed: () async {
+            await ref.read(emailAlarmServiceProvider).stopMonitaring();
+            await SystemNavigator.pop();
           },
           child: const Padding(
             padding: EdgeInsets.all(32),

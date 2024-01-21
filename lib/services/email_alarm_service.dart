@@ -15,8 +15,6 @@ class EmailAlarmService {
   EmailAlarmService(this.ref);
   final Ref ref;
 
-  Timer? _timer;
-
   final StreamController<bool> _isMonitoringStateController =
       StreamController<bool>.broadcast();
 
@@ -24,7 +22,7 @@ class EmailAlarmService {
   late final monitoringStateChanges = _isMonitoringStateController.stream;
 
   /// 監視中かどうか
-  bool get isMonitoring => _timer != null;
+  bool get isMonitoring => _checkSubscription != null;
 
   late FlutterBackgroundService service;
 
@@ -72,18 +70,13 @@ class EmailAlarmService {
 
   Future<void> stopMonitaring() async {
     service.invoke('stopService');
-    await ref.read(alarmServiceProvider).stopSound();
+    _isMonitoringStateController.add(false);
     await _checkSubscription?.cancel();
     _checkSubscription = null;
     await _stopSubscription?.cancel();
     _stopSubscription = null;
-    _isMonitoringStateController.add(false);
-    _timer?.cancel();
-    _timer = null;
-  }
-
-  Future<void> stopSound() async {
     await ref.read(alarmServiceProvider).stopSound();
+    await FlutterLocalNotificationsPlugin().cancelAll();
   }
 
   Future<void> initializeService() async {
@@ -156,6 +149,7 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
 const notificationChannelId = 'my_foreground';
 
 const notificationId = 888;
+const fullScreenNotificationId = 999;
 
 @pragma('vm:entry-point')
 Future<void> onStart(ServiceInstance service) async {
@@ -165,8 +159,9 @@ Future<void> onStart(ServiceInstance service) async {
   await repository.initialize();
   final config = await repository.getConfig();
 
-  service.on('stopService').listen((event) {
-    service.stopSelf();
+  service.on('stopService').listen((event) async {
+    await service.stopSelf();
+    await flutterLocalNotificationsPlugin.cancelAll();
   });
 
   service.on('stop').listen((event) {
@@ -231,7 +226,7 @@ Future<void> _showFullScreenNotification(String body) async {
   );
 
   await flutterLocalNotificationsPlugin.show(
-    0,
+    fullScreenNotificationId,
     'Email recieved',
     body,
     platformChannelSpecifics,
