@@ -200,7 +200,6 @@ Future<void> onStart(ServiceInstance service) async {
     );
   });
 
-  // bring to foreground
   Timer.periodic(Duration(minutes: config.intervalInMinutes), (timer) async {
     service.invoke('check');
   });
